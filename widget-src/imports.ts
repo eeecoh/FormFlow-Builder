@@ -23,6 +23,7 @@ import DevNote from './components/DevNote';
 import Note from './components/Note';
 import Section from './components/Section';
 import CustomComponent from './components/answertype/CustomComponent';
+import Field from './components/Field';
 
 export {
     Header,
@@ -49,5 +50,6 @@ export {
     DevNote,
     Note,
     Section,
-    CustomComponent
+    CustomComponent,
+    Field
 };

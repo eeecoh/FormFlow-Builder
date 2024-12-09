@@ -28,17 +28,17 @@ function Widget(props: Partial<AutoLayoutProps>) {
       options: imports.contentTypeOptions,
       selectedOption: contentType,
     },
-    ...(contentType === "question" ? [
+    ...(contentType === "question" || contentType === "field" ? [
       createToggleItem("toggleQuestionAdditionalInput", showAdditionalInput, imports.icons.ADDITIONAL_INPUT),
       createToggleItem("toggleQuestionNumber", showQuestionNumber, imports.icons.QUESTION_NUMBER),
       createToggleItem("toggleValidationRequired", isValidationRequired, imports.icons.REQUIRE_TOGGLE)
     ] : []),
-    ...(contentType === "answer" ? [
+    ...(contentType === "answer" || contentType === "field" ? [
       {
         itemType: "dropdown",
         propertyName: "answerType",
         tooltip: "Select Response type",
-        options: imports.answerTypeOptions,
+        options: imports.answerTypeOptions.map(({ label, option }) => ({ option, label })),
         selectedOption: answerType,
       },
       ...(answerType === "Currency" ? [{
@@ -139,7 +139,7 @@ function Widget(props: Partial<AutoLayoutProps>) {
       currency: () => setCurrency(propertyValue), // Add this line
       addWidget: addWidget,
       toggleAdditionalInput: () => {
-        if (contentType === "devnote" || contentType === "note" || contentType === "answer" || contentType === "question" || contentType === "section" || contentType === "customcomponent") {
+        if (contentType === "devnote" || contentType === "note" || contentType === "answer" || contentType === "question" || contentType === "section" || contentType === "customcomponent" || contentType === "field") {
           setShowAdditionalInput(!showAdditionalInput);
         } else if (contentType === "header") {
           setShowHeaderAdditionalInput(!showHeaderAdditionalInput);
@@ -238,6 +238,8 @@ function Widget(props: Partial<AutoLayoutProps>) {
         newContentType = "answer";
       } else if (contentType === "answer") {
         newContentType = "question";
+      } else if (newContentType === "field") {
+        newContentType = "field"
       }
 
       const newWidget = currentWidget.cloneWidget({
@@ -251,7 +253,7 @@ function Widget(props: Partial<AutoLayoutProps>) {
           numberInputText: "",
           additionalInputText: ""
         }),
-        ...(newContentType === "question" && {
+        ...((newContentType === "question" || newContentType === "field") && {
           questionText: "",
           numberInputText: "",
           additionalInputText: ""
@@ -272,6 +274,9 @@ function Widget(props: Partial<AutoLayoutProps>) {
         ...(newContentType === "customcomponent" && {
           customComponentText: "",
           additionalInputText: ""
+        }),
+        ...(newContentType === "field" && {
+          answerType: "Input"
         })
       });
 
@@ -280,7 +285,7 @@ function Widget(props: Partial<AutoLayoutProps>) {
       figma.currentPage.appendChild(newWidget);
 
       // Create a connector between the current widget and the new widget
-      if (newContentType === "question" || newContentType === "answer" || newContentType === "header") {
+      if (newContentType === "question" || newContentType === "answer" || newContentType === "header" || newContentType === "field") {
         const connector = figma.createConnector();
         connector.connectorStart = {
           endpointNodeId: currentWidget.id,
@@ -327,6 +332,8 @@ function Widget(props: Partial<AutoLayoutProps>) {
       return <Section {...commonProps} showAdditionalInput={showAdditionalInput} showHeaderNumber={showHeaderNumber} />;
     } else if (contentType === "customcomponent") { // Add this block
       return <imports.CustomComponent {...commonProps} showAdditionalInput={showAdditionalInput} isLinkEditable={isLinkEditable} />;
+    } else if (contentType === "field"){
+      return <imports.Field {...commonProps} showQuestionNumber={showQuestionNumber} isValidationRequired={isValidationRequired} isLinkEditable={isLinkEditable} currency={currency} answerType={answerType}  />;
     } else {
       console.log("Error: Invalid content type");
       return <Text>Error: Invalid content type</Text>;
